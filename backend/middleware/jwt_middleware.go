@@ -2,23 +2,30 @@ package middleware
 
 import (
 	"log"
+	"os"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
+	"github.com/joho/godotenv"
 )
 
-const secretKey = "your-secret-key"
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+}
 
 func AuthMiddleware(c *fiber.Ctx) error {
 	authHeader := c.Get("Authorization")
-
 	if authHeader == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Missing authorization header"})
 	}
 
 	tokenString := strings.Replace(authHeader, "Bearer ", "", 1)
 
+	secretKey := os.Getenv("SECRET_KEY")
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Validate the token signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
